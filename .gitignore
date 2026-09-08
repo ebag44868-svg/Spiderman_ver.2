@@ -1,0 +1,52 @@
+# ---- Unity 생성물 ----
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# ---- Claude 배치모드 로그 ----
+/tools/*.log
+
+# ---- IDE ----
+/.vs/
+/.vscode/
+/.gradle/
+/.idea/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# ---- 빌드 산출물 ----
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Unity 크래시 리포트 ----
+sysinfo.txt
+crashlytics-build.properties
+
+# ---- Addressables (P10에서 쓰게 되면 재검토) ----
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
