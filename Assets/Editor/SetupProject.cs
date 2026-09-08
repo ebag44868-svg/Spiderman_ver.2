@@ -41,9 +41,9 @@ public static class SetupProject
         AssetDatabase.Refresh();
 
         var active = GraphicsSettings.defaultRenderPipeline;
-        Debug.Log("SETUP_OK rp=" + (active == null ? "NULL" : active.GetType().Name) +
-                  " colorSpace=" + PlayerSettings.colorSpace);
-        EditorApplication.Exit(active == null ? 1 : 0);
+        EditorRun.Finish(active == null ? 1 : 0,
+            "SETUP_OK rp=" + (active == null ? "NULL" : active.GetType().Name) +
+            " colorSpace=" + PlayerSettings.colorSpace);
     }
 
     static void CreateFolders()

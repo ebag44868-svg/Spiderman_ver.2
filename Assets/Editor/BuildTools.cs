@@ -66,14 +66,12 @@ public static class BuildTools
         if (fail.Count > 0)
         {
             foreach (var f in fail) Debug.LogError("VERIFY_FAIL " + f);
-            Debug.LogError("VERIFY_FAIL count=" + fail.Count);
-            EditorApplication.Exit(1);
+            EditorRun.Finish(1, "VERIFY_FAIL count=" + fail.Count);
             return;
         }
 
-        Debug.Log("VERIFY_OK unity=" + Application.unityVersion +
-                  " rp=" + rp.GetType().Name +
-                  " folders=" + RequiredFolders.Length);
-        EditorApplication.Exit(0);
+        EditorRun.Finish(0, "VERIFY_OK unity=" + Application.unityVersion +
+                            " rp=" + rp.GetType().Name +
+                            " folders=" + RequiredFolders.Length);
     }
 }

@@ -3,7 +3,8 @@
     "rootNamespace": "SpiderVer2.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "SpiderVer2.Runtime"
     ],
     "includePlatforms": [
         "Editor"

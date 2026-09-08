@@ -50,3 +50,10 @@ crashlytics-build.properties
 # ---- Addressables (P10에서 쓰게 되면 재검토) ----
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Claude Bridge 우편함 (세션마다 달라진다)
+/tools/claude_cmd.txt
+/tools/claude_result.txt
+/tools/claude_state.txt
+
+/tools/testresults.xml
