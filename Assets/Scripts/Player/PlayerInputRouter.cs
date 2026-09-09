@@ -26,6 +26,9 @@ namespace SpiderVer2.Player
         public bool ClimbHeld { get; private set; }
         public bool CursorLocked { get; private set; }
 
+        [Tooltip("켜면 모든 입력을 0으로 만든다. 도움말이 열려 있을 때 쓴다")]
+        public bool suspended;
+
         InputActionMap _map;
         InputAction _move, _look, _jump, _webL, _webR, _climb, _unlock;
 
@@ -65,6 +68,18 @@ namespace SpiderVer2.Player
 
         void Update()
         {
+            if (suspended)
+            {
+                // 도움말을 보는 동안 웹이 발사되거나 시점이 돌아가면 안 된다.
+                Move = Vector2.zero;
+                Look = Vector2.zero;
+                JumpPressed = JumpHeld = false;
+                WebLeftHeld = WebRightHeld = false;
+                WebLeftPressed = WebRightPressed = false;
+                ClimbHeld = false;
+                return;
+            }
+
             Move = _move.ReadValue<Vector2>();
             Look = CursorLocked ? _look.ReadValue<Vector2>() : Vector2.zero;
 

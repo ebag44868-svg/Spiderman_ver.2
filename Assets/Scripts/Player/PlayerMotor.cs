@@ -1,4 +1,5 @@
 using UnityEngine;
+using SpiderVer2.Web;
 
 namespace SpiderVer2.Player
 {
@@ -16,6 +17,8 @@ namespace SpiderVer2.Player
     {
         public TuningConfig tuning;
         [Tooltip("이 레이어만 바닥/벽으로 친다")] public LayerMask worldMask = ~0;
+        [Tooltip("붙어 있으면 로프 구속을 받는다. 없어도 P1처럼 동작한다")]
+        public WebController web;
 
         public bool Grounded { get; private set; }
         public float Speed { get; private set; }
@@ -51,6 +54,7 @@ namespace SpiderVer2.Player
             var v = _rb.linearVelocity;
 
             Grounded = CheckGrounded();
+            bool swinging = web != null && web.Connected;
 
             // ── 입력을 월드 방향으로. 몸의 yaw를 기준으로 한다 (1인칭 카메라가 몸을 돌린다)
             Vector2 mv = _input != null ? _input.Move : Vector2.zero;
@@ -61,7 +65,8 @@ namespace SpiderVer2.Player
             v += wish * (accel * dt);
 
             // ── 지상에서만 걷기 속도로 묶는다. 공중은 웹이 주인이라 묶지 않는다.
-            if (Grounded)
+            // 스윙 중에는 바닥을 스쳐도 묶지 않는다. 묶으면 저고도 스윙이 매번 죽는다 (§4.1 골목 구간).
+            if (Grounded && !swinging)
             {
                 Vector3 flat = new Vector3(v.x, 0f, v.z);
                 float flatSpeed = flat.magnitude;
@@ -82,30 +87,35 @@ namespace SpiderVer2.Player
             }
 
             // ── 중력
-            if (!Grounded) v.y -= tuning.GRAVITY * dt;
+            if (!Grounded || swinging) v.y -= tuning.GRAVITY * dt;
             else if (v.y < 0f) v.y = 0f;
 
-            // ── 점프
-            if (_input != null && _input.JumpPressed && Grounded)
+            // ── 점프. 웹에 매달린 상태에서 Space는 점프가 아니라 펌프다.
+            if (_input != null && _input.JumpPressed && Grounded && !swinging)
             {
                 v.y = tuning.JUMP_SPEED;
                 Grounded = false;
             }
 
-            // ── 속도 상한. SOFT_SPEED 위로는 하드 클램프가 아니라 드래그다 (§7.2)
-            float sp = v.magnitude;
-            if (sp > tuning.SOFT_SPEED)
+            // ── 로프 구속. 중력·가속을 다 넣은 뒤 마지막에 진실을 강제한다 (헌법 §5.2).
+            if (swinging)
             {
-                float over = sp - tuning.SOFT_SPEED;
-                float damped = sp - over * tuning.SOFT_DRAG * dt;
-                if (damped > tuning.MAX_SPEED) damped = tuning.MAX_SPEED;
-                v *= damped / sp;
+                Vector3 p = _rb.position;
+                v = web.Constrain(v, ref p, dt);
+                if ((p - _rb.position).sqrMagnitude > 1e-10f) _rb.position = p;
             }
+
+            // ── 속도 상한. SOFT_SPEED 위로는 하드 클램프가 아니라 드래그다 (§7.2)
+            // 수학은 MotionMath에 있다. 씬 없이 테스트할 수 있어야 하기 때문이다.
+            v = SpiderVer2.Core.MotionMath.ClampSpeed(v, tuning.SOFT_SPEED, tuning.MAX_SPEED,
+                                                      tuning.SOFT_DRAG, dt);
 
             _rb.linearVelocity = v;
 
             Speed = v.magnitude;
-            State = Grounded ? "GROUND" : (v.y > 0f ? "AIR_UP" : "AIR_DOWN");
+            State = swinging ? "SWING"
+                  : Grounded ? "GROUND"
+                  : (v.y > 0f ? "AIR_UP" : "AIR_DOWN");
         }
 
         bool CheckGrounded()

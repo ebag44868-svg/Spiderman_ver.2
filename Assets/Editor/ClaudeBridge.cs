@@ -11,9 +11,11 @@
 // 답장:    tools/claude_result.txt
 // 상태:    tools/claude_state.txt   (도메인 리로드를 건너 살아남아야 해서 파일에 둔다)
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 [InitializeOnLoad]
@@ -22,6 +24,7 @@ public static class ClaudeBridge
     const string CmdPath = "tools/claude_cmd.txt";
     const string ResultPath = "tools/claude_result.txt";
     const string StatePath = "tools/claude_state.txt";
+    const string CompilePath = "tools/claude_compile.txt";
     const double PollSeconds = 0.5;
 
     static double _nextPoll;
@@ -29,6 +32,46 @@ public static class ClaudeBridge
     static ClaudeBridge()
     {
         EditorApplication.update += Tick;
+
+        // 컴파일 에러를 파일로 흘려보낸다.
+        // 에디터가 켜져 있으면 Claude는 배치모드로 컴파일을 못 돌린다.
+        // 이게 없으면 "결과가 안 온다"와 "코드가 안 컴파일된다"를 구분할 수 없다.
+        CompilationPipeline.compilationStarted -= OnCompileStart;
+        CompilationPipeline.compilationStarted += OnCompileStart;
+        CompilationPipeline.assemblyCompilationFinished -= OnAssemblyDone;
+        CompilationPipeline.assemblyCompilationFinished += OnAssemblyDone;
+    }
+
+    static void OnCompileStart(object _)
+    {
+        try
+        {
+            Directory.CreateDirectory("tools");
+            File.WriteAllText(CompilePath, "status=COMPILING\ntime=" +
+                DateTime.Now.ToString("HH:mm:ss") + "\n");
+        }
+        catch { }
+    }
+
+    static void OnAssemblyDone(string assemblyPath, CompilerMessage[] messages)
+    {
+        try
+        {
+            var errors = new List<string>();
+            foreach (var m in messages)
+                if (m.type == CompilerMessageType.Error)
+                    errors.Add(m.file + "(" + m.line + "): " + m.message);
+
+            if (errors.Count == 0) return;
+
+            Directory.CreateDirectory("tools");
+            using (var w = new StreamWriter(CompilePath, true))
+            {
+                w.WriteLine("status=ERROR assembly=" + Path.GetFileName(assemblyPath));
+                foreach (var e in errors) w.WriteLine(e);
+            }
+        }
+        catch { }
     }
 
     static void Tick()

@@ -99,8 +99,15 @@ public class TuningConfig : ScriptableObject
     [Tooltip("몸 기울기 최대 각도 (도)")] public float FP_LEAN_MAX = 32f;
 
     // ─────────────────────────────────────────────────────────────
+    [Header("웹 조작 (P2 — 기준서 §7에 없던 Ver.2 신규값. 실측으로 맞춰간다)")]
+    [Tooltip("줄 감기 속도 (m/s). 감으면 각운동량 보존으로 빨라진다")] public float REEL_RATE = 34f;
+    [Tooltip("한 스텝에 붙는 최대 배율. 앵커에 붙을수록 발산하는 걸 막는다")] public float REEL_GAIN_MAX = 1.02f;
+    [Tooltip("줄 감을 때 앵커 쪽으로 끌려가는 가속 (m/s^2). 급강하·벽 붙기에 쓴다")] public float ZIP_PULL = 55f;
+    [Tooltip("로프 위치 보정 강도. 낮으면 줄이 고무줄처럼 늘어난다")] [Range(0f, 1f)] public float ROPE_STIFF = 0.9f;
+
+    // ─────────────────────────────────────────────────────────────
     [Header("지상 이동 (P1 임시. P2에서 웹 물리가 주인이 된다)")]
-    [Tooltip("중력. 기본 9.81보다 무겁게 둬야 스윙이 산다")] public float GRAVITY = 22f;
+    [Tooltip("중력. 기본 9.81보다 무겁게 둬야 스윙이 산다")] public float GRAVITY = 28f;
     [Tooltip("점프 초기 속도")] public float JUMP_SPEED = 9f;
     [Tooltip("걷기 최고 속도")] public float GROUND_MAX_SPEED = 14f;
     [Tooltip("지상 마찰")] public float GROUND_DRAG = 9f;

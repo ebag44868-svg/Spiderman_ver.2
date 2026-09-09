@@ -1,0 +1,6 @@
+status=PASS
+passed=37
+failed=0
+skipped=0
+inconclusive=0
+duration=0.24s
