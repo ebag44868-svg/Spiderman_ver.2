@@ -61,34 +61,28 @@ namespace SpiderVer2.Player
             Vector3 wish = transform.right * mv.x + transform.forward * mv.y;
             if (wish.sqrMagnitude > 1f) wish.Normalize();
 
-            float accel = Grounded ? tuning.ACCEL : tuning.AIR_ACCEL;
-            v += wish * (accel * dt);
-
-            // ── 지상에서만 걷기 속도로 묶는다. 공중은 웹이 주인이라 묶지 않는다.
-            // 스윙 중에는 바닥을 스쳐도 묶지 않는다. 묶으면 저고도 스윙이 매번 죽는다 (§4.1 골목 구간).
-            if (Grounded && !swinging)
-            {
-                Vector3 flat = new Vector3(v.x, 0f, v.z);
-                float flatSpeed = flat.magnitude;
-
-                if (wish.sqrMagnitude < 0.01f)
-                {
-                    // 마찰
-                    float drop = tuning.GROUND_DRAG * dt;
-                    float scale = flatSpeed > 0f ? Mathf.Max(0f, flatSpeed - drop) / flatSpeed : 0f;
-                    flat *= scale;
-                }
-                else if (flatSpeed > tuning.GROUND_MAX_SPEED)
-                {
-                    flat *= tuning.GROUND_MAX_SPEED / flatSpeed;
-                }
-
-                v.x = flat.x; v.z = flat.z;
-            }
-
-            // ── 중력
+            // ── 중력 (Ver.1은 이동보다 먼저 넣는다)
             if (!Grounded || swinging) v.y -= tuning.GRAVITY * dt;
             else if (v.y < 0f) v.y = 0f;
+
+            // ── 이동. Ver.1 game3d.js:6134-6147 그대로.
+            //   지상은 목표 속도로 수렴시킨다 (가속을 계속 더하지 않는다).
+            //   공중은 가속을 더하되, 웹이 없으면 60%로 약해진다.
+            if (Grounded && !swinging)
+            {
+                bool sprint = _input != null && _input.SprintHeld;
+                float spd = tuning.MOVE_SPEED * (sprint ? tuning.SPRINT_MULT : 1f);
+                float tx = wish.x * spd, tz = wish.z * spd;
+                float t = Mathf.Min(1f, (tuning.ACCEL / Mathf.Max(tuning.MOVE_SPEED, 0.01f)) * dt);
+                v.x += (tx - v.x) * t;
+                v.z += (tz - v.z) * t;
+            }
+            else if (wish.sqrMagnitude > 0.0001f)
+            {
+                float acc = swinging ? tuning.AIR_ACCEL : tuning.AIR_ACCEL * 0.6f;
+                v.x += wish.x * acc * dt;
+                v.z += wish.z * acc * dt;
+            }
 
             // ── 점프. 웹에 매달린 상태에서 Space는 점프가 아니라 펌프다.
             if (_input != null && _input.JumpPressed && Grounded && !swinging)
@@ -105,10 +99,15 @@ namespace SpiderVer2.Player
                 if ((p - _rb.position).sqrMagnitude > 1e-10f) _rb.position = p;
             }
 
-            // ── 속도 상한. SOFT_SPEED 위로는 하드 클램프가 아니라 드래그다 (§7.2)
+            // ── 드래그. 스윙 중에는 거의 걸지 않는다. 여기서 깎으면 속도가 안 쌓인다.
+            float drag = Grounded ? tuning.DRAG_GROUND
+                       : swinging ? tuning.DRAG_SWING
+                       : tuning.DRAG_AIR;
+            v = SpiderVer2.Core.MotionMath.ApplyDrag(v, drag, Grounded, dt);
+
+            // ── 속도 상한. SOFT_SPEED 위로는 하드 클램프가 아니라 지수 드래그다 (§7.2)
             // 수학은 MotionMath에 있다. 씬 없이 테스트할 수 있어야 하기 때문이다.
-            v = SpiderVer2.Core.MotionMath.ClampSpeed(v, tuning.SOFT_SPEED, tuning.MAX_SPEED,
-                                                      tuning.SOFT_DRAG, dt);
+            v = SpiderVer2.Core.MotionMath.ClampSpeed(v, tuning.SOFT_SPEED, tuning.MAX_SPEED, dt);
 
             _rb.linearVelocity = v;
 

@@ -99,18 +99,25 @@ public class TuningConfig : ScriptableObject
     [Tooltip("몸 기울기 최대 각도 (도)")] public float FP_LEAN_MAX = 32f;
 
     // ─────────────────────────────────────────────────────────────
-    [Header("웹 조작 (P2 — 기준서 §7에 없던 Ver.2 신규값. 실측으로 맞춰간다)")]
-    [Tooltip("줄 감기 속도 (m/s). 감으면 각운동량 보존으로 빨라진다")] public float REEL_RATE = 34f;
-    [Tooltip("한 스텝에 붙는 최대 배율. 앵커에 붙을수록 발산하는 걸 막는다")] public float REEL_GAIN_MAX = 1.02f;
-    [Tooltip("줄 감을 때 앵커 쪽으로 끌려가는 가속 (m/s^2). 급강하·벽 붙기에 쓴다")] public float ZIP_PULL = 55f;
-    [Tooltip("로프 위치 보정 강도. 낮으면 줄이 고무줄처럼 늘어난다")] [Range(0f, 1f)] public float ROPE_STIFF = 0.9f;
+    [Header("웹 조작 — Ver.1 game3d.js:4237-4241 이식. 스윙 감각의 핵심이다")]
+    [Tooltip("로프가 완전히 물리기까지의 시간(초). 붙는 순간 덜컹거림을 없앤다")] public float GRIP_TIME = 0.13f;
+    [Tooltip("실제 길이가 목표를 따라가는 속도 (m/s). 즉시 바꾸면 뚝뚝 끊긴다")] public float ROPE_FOLLOW_RATE = 40f;
+    [Tooltip("Space 홀드로 줄을 감는 속도 (m/s)")] public float REEL_MANUAL = 26f;
+    [Tooltip("자동 펌핑 강도. 호 바닥에서 로프가 이 비율만큼 줄어든다")] public float PUMP_DEPTH = 0.12f;
+    [Tooltip("감기 한 스텝의 최대 배율. 앵커에 붙을수록 발산하는 걸 막는다 (Ver.1 1.01)")] public float REEL_GAIN_MAX = 1.01f;
+    [Tooltip("줄 감을 때 앵커 쪽으로 끌려가는 가속 (m/s^2). Ver.2 신규 — 급강하·벽 붙기")] public float ZIP_PULL = 55f;
+    [Tooltip("로프 위치 보정 강도. Ver.1은 즉시 스냅(1.0)한다")] [Range(0f, 1f)] public float ROPE_STIFF = 1f;
+
+    [Header("드래그 (Ver.1 game3d.js:6203). 스윙 중에는 거의 걸지 않는다")]
+    [Tooltip("지상 수평 감쇠 계수")] public float DRAG_GROUND = 0.06f;
+    [Tooltip("공중 수평 감쇠 계수")] public float DRAG_AIR = 0.02f;
+    [Tooltip("스윙 중 수평 감쇠 계수. 여기서 깎으면 절대 빨라지지 않는다")] public float DRAG_SWING = 0.003f;
 
     // ─────────────────────────────────────────────────────────────
-    [Header("지상 이동 (P1 임시. P2에서 웹 물리가 주인이 된다)")]
-    [Tooltip("중력. 기본 9.81보다 무겁게 둬야 스윙이 산다")] public float GRAVITY = 28f;
-    [Tooltip("점프 초기 속도")] public float JUMP_SPEED = 9f;
-    [Tooltip("걷기 최고 속도")] public float GROUND_MAX_SPEED = 14f;
-    [Tooltip("지상 마찰")] public float GROUND_DRAG = 9f;
-    [Tooltip("SOFT_SPEED 위에서 걸리는 드래그 계수")] public float SOFT_DRAG = 0.9f;
+    [Header("지상 이동 — Ver.1 game3d.js:4151-4157 이식")]
+    [Tooltip("중력. Ver.1 G=72. 큰 스케일에서 붕 뜨지 않도록 실제 중력보다 크게 잡는다")] public float GRAVITY = 72f;
+    [Tooltip("점프 초기 속도. Ver.1 JUMP_V=42. 중력을 올린 만큼 같이 올렸다")] public float JUMP_SPEED = 42f;
+    [Tooltip("걷기 최고 속도. Ver.1 MOVE_SPEED=19")] public float MOVE_SPEED = 19f;
+    [Tooltip("지상 Shift 달리기 배수. Ver.1 SPRINT_MULT=1.85")] public float SPRINT_MULT = 1.85f;
     [Tooltip("접지 판정 거리")] public float GROUND_CHECK = 0.25f;
 }

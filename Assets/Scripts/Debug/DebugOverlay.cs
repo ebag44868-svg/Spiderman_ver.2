@@ -231,22 +231,24 @@ namespace SpiderVer2.DebugTools
             GUILayout.Label("이동", _help2);
             HRow("W A S D", "이동");
             HRow("마우스", "시점");
-            HRow("Space", "점프");
+            HRow("Space", "점프  (땅에 있고 웹이 없을 때)");
+            HRow("왼쪽 Shift", "달리기  (땅에서)");
             HRow("Esc", "마우스 커서 풀기 (다시 화면을 클릭하면 잠김)");
             GUILayout.Space(pad * 0.35f);
 
             GUILayout.Label("웹  —  버튼을 누르고 있는 동안 붙어 있습니다", _help2);
             HRow("마우스 왼쪽", "오른손 웹 발사 / 떼면 놓기");
             HRow("마우스 오른쪽", "왼손 웹 발사 / 떼면 놓기");
-            HRow("Space  (매달린 중)", "펌프 — 진행 방향으로 가속");
-            HRow("왼쪽 Shift  (매달린 중)", "줄 감기 — 빨라지고 앵커 쪽으로 끌려갑니다");
+            HRow("Space  (매달린 중)", "줄 감기 — 빨라지고 앵커 쪽으로 끌려갑니다");
+            HRow("E  (매달린 중)", "펌프 — 진행 방향으로 가속");
             GUILayout.Space(pad * 0.35f);
 
             GUILayout.Label("속도를 버는 법", _help2);
+            HRow("자동", "호 바닥에 가까워지면 줄이 저절로 감깁니다. 가만히 있어도 스윙이 삽니다");
             HRow("1", "옥상에서 앞으로 뛰어내립니다");
             HRow("2", "앞 건물 위쪽을 겨누고 마우스 왼쪽을 누르고 있습니다");
-            HRow("3", "떨어지는 동안 왼쪽 Shift 로 줄을 감습니다  ← 여기서 빨라집니다");
-            HRow("4", "호의 바닥을 지날 때 Space 로 펌프합니다");
+            HRow("3", "더 빠르게 하려면 Space 로 줄을 감습니다");
+            HRow("4", "호의 바닥을 지날 때 E 로 펌프합니다");
             HRow("5", "올라가는 구간에서 버튼을 떼어 놓습니다");
             GUILayout.Space(pad * 0.35f);
 

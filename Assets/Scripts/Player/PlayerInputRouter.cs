@@ -23,14 +23,18 @@ namespace SpiderVer2.Player
         public bool WebRightHeld { get; private set; } // 마우스 왼쪽  = 오른손
         public bool WebLeftPressed { get; private set; }
         public bool WebRightPressed { get; private set; }
-        public bool ClimbHeld { get; private set; }
+        // Ver.1 배치 그대로. Space는 상황에 따라 두 가지다 —
+        // 웹이 없고 접지면 점프, 매달려 있으면 줄 감기 (game3d.js:6257, 6429).
+        public bool ReelHeld { get { return JumpHeld; } }
+        public bool PumpHeld { get; private set; }      // E
+        public bool SprintHeld { get; private set; }    // 지상 Shift 달리기
         public bool CursorLocked { get; private set; }
 
         [Tooltip("켜면 모든 입력을 0으로 만든다. 도움말이 열려 있을 때 쓴다")]
         public bool suspended;
 
         InputActionMap _map;
-        InputAction _move, _look, _jump, _webL, _webR, _climb, _unlock;
+        InputAction _move, _look, _jump, _webL, _webR, _pump, _sprint, _unlock;
 
         void Awake()
         {
@@ -50,7 +54,8 @@ namespace SpiderVer2.Player
             _webR = _map.AddAction("WebRight", InputActionType.Button, "<Mouse>/leftButton");
             _webL = _map.AddAction("WebLeft", InputActionType.Button, "<Mouse>/rightButton");
 
-            _climb = _map.AddAction("Climb", InputActionType.Button, "<Keyboard>/leftShift");
+            _pump = _map.AddAction("Pump", InputActionType.Button, "<Keyboard>/e");
+            _sprint = _map.AddAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift");
             _unlock = _map.AddAction("Unlock", InputActionType.Button, "<Keyboard>/escape");
         }
 
@@ -76,7 +81,8 @@ namespace SpiderVer2.Player
                 JumpPressed = JumpHeld = false;
                 WebLeftHeld = WebRightHeld = false;
                 WebLeftPressed = WebRightPressed = false;
-                ClimbHeld = false;
+                PumpHeld = false;
+                SprintHeld = false;
                 return;
             }
 
@@ -91,7 +97,8 @@ namespace SpiderVer2.Player
             WebLeftPressed = _webL.WasPressedThisFrame();
             WebRightPressed = _webR.WasPressedThisFrame();
 
-            ClimbHeld = _climb.IsPressed();
+            PumpHeld = _pump.IsPressed();
+            SprintHeld = _sprint.IsPressed();
 
             if (_unlock.WasPressedThisFrame()) LockCursor(false);
 

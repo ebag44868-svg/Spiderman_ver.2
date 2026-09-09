@@ -147,19 +147,100 @@ namespace SpiderVer2.Tests
             Assert.That(len, Is.EqualTo(12f).Within(0.0001f));
         }
 
+        // ─────────────────────────────── 펌프 (Ver.1 E키)
+
         [Test]
-        public void 펌프는_줄_방향으로_밀지_않는다()
+        public void 펌프는_수평_진행_방향으로_민다()
+        {
+            Vector3 vel = new Vector3(20f, 0f, 0f);
+            var outv = WebPhysics.Pump(vel, 58f, 1f / 120f);
+
+            Assert.That(outv.x, Is.GreaterThan(20f), "앞으로 안 밀었다");
+            Assert.That(Mathf.Abs(outv.z), Is.LessThan(0.001f), "옆으로 새면 안 된다");
+        }
+
+        [Test]
+        public void 펌프는_하강_속도를_조금_되돌린다()
+        {
+            Vector3 vel = new Vector3(20f, -30f, 0f);
+            var outv = WebPhysics.Pump(vel, 58f, 1f / 120f);
+
+            Assert.That(outv.y, Is.GreaterThan(vel.y), "떨어지는 속도를 전혀 안 잡았다");
+        }
+
+        [Test]
+        public void 거의_멈춰_있으면_펌프가_안_먹는다()
+        {
+            // 방향이 없는데 밀면 아무 쪽으로나 튄다. Ver.1도 0.5 m/s 미만이면 건너뛴다.
+            Vector3 vel = new Vector3(0.1f, -5f, 0.1f);
+            Assert.AreEqual(vel, WebPhysics.Pump(vel, 58f, 1f / 120f));
+        }
+
+        // ─────────────────────────────── 자동 펌핑 · 길이 추종
+
+        [Test]
+        public void 호_바닥에서_줄이_가장_많이_감긴다()
+        {
+            Vector3 anchor = Vector3.zero;
+            Vector3 bottom = new Vector3(0f, -40f, 0f);    // 앵커 바로 아래
+            Vector3 side = new Vector3(40f, 0f, 0f);       // 옆
+
+            float atBottom = WebPhysics.AutoPumpTarget(bottom, anchor, 40f, 0.12f, 12f);
+            float atSide = WebPhysics.AutoPumpTarget(side, anchor, 40f, 0.12f, 12f);
+
+            Assert.That(atBottom, Is.EqualTo(40f * (1f - 0.12f)).Within(0.01f));
+            Assert.That(atSide, Is.EqualTo(40f).Within(0.01f), "옆에서는 안 감겨야 한다");
+        }
+
+        [Test]
+        public void 자동_펌핑도_ROPE_MIN_아래로_안_간다()
+        {
+            var v = WebPhysics.AutoPumpTarget(new Vector3(0f, -12f, 0f), Vector3.zero, 12f, 0.9f, 12f);
+            Assert.That(v, Is.GreaterThanOrEqualTo(12f));
+        }
+
+        [Test]
+        public void 길이는_한_번에_안_바뀌고_따라간다()
+        {
+            float len = WebPhysics.FollowLength(40f, 20f, 40f, 1f / 120f);
+            Assert.That(len, Is.EqualTo(40f - 40f / 120f).Within(0.001f), "줄일 때는 제 속도로");
+
+            float len2 = WebPhysics.FollowLength(20f, 40f, 40f, 1f / 120f);
+            Assert.That(len2, Is.EqualTo(20f + 40f * 0.7f / 120f).Within(0.001f), "늘일 때는 70%로");
+        }
+
+        [Test]
+        public void 목표에_도달하면_넘어가지_않는다()
+        {
+            float len = WebPhysics.FollowLength(40f, 39.99f, 40f, 1f / 120f);
+            Assert.That(len, Is.EqualTo(39.99f).Within(0.001f));
+        }
+
+        // ─────────────────────────────── GRIP (붙는 순간 덜컹 제거)
+
+        [Test]
+        public void grip이_0이면_속도를_거의_안_되돌린다()
         {
             Vector3 anchor = Vector3.zero;
             Vector3 pos = new Vector3(0f, -20f, 0f);
-            Vector3 vel = new Vector3(20f, 0f, 0f);
+            Vector3 vel = new Vector3(10f, -30f, 0f);
 
-            var outv = WebPhysics.Pump(pos, vel, anchor, 58f, 1f / 120f);
-            Vector3 added = outv - vel;
-            Vector3 n = (pos - anchor).normalized;
+            var atStart = WebPhysics.SolveRope(pos, vel, anchor, 20f, Convert, 0f, Vector3.forward, 112f);
+            var atFull = WebPhysics.SolveRope(pos, vel, anchor, 20f, Convert, 1f, Vector3.forward, 112f);
 
-            Assert.That(Mathf.Abs(Vector3.Dot(added, n)), Is.LessThan(0.001f));
-            Assert.That(outv.magnitude, Is.GreaterThan(vel.magnitude));
+            Assert.That(atStart.magnitude, Is.LessThan(atFull.magnitude), "grip이 안 듣는다");
+            Assert.That(atStart.magnitude, Is.EqualTo(10f).Within(0.01f), "grip 0이면 접선만 남아야 한다");
+        }
+
+        [Test]
+        public void 구속은_MAX_SPEED를_넘겨_되돌리지_않는다()
+        {
+            Vector3 anchor = Vector3.zero;
+            Vector3 pos = new Vector3(0f, -20f, 0f);
+            Vector3 vel = new Vector3(30f, -200f, 0f);
+
+            var outv = WebPhysics.SolveRope(pos, vel, anchor, 20f, 1f, 1f, Vector3.forward, 112f);
+            Assert.That(outv.magnitude, Is.LessThanOrEqualTo(112f + 0.001f));
         }
 
         // ─────────────────────────────── 5초 안정 (P2 완료 기준)
@@ -168,7 +249,7 @@ namespace SpiderVer2.Tests
         public void 스윙_5초_동안_폭발하지_않는다()
         {
             const float dt = 1f / 120f;
-            const float gravity = 22f;
+            const float gravity = 72f;      // Ver.1 G
             const float ropeLen = 40f;
 
             Vector3 anchor = new Vector3(0f, 60f, 0f);
@@ -191,8 +272,8 @@ namespace SpiderVer2.Tests
                 if (s > maxSpeed) maxSpeed = s;
 
                 // 진자는 에너지 보존이라 최고 속도가 sqrt(2*g*h) 근처를 넘지 않아야 한다.
-                // h = 28 (놓은 높이차). sqrt(2*22*28) ≈ 35.1. 여유를 두고 45로 막는다.
-                Assert.That(s, Is.LessThan(45f), "속도 폭발, step=" + step + " speed=" + s);
+                // h = 28 (놓은 높이차). sqrt(2*72*28) ≈ 63.5. 여유를 두고 75로 막는다.
+                Assert.That(s, Is.LessThan(75f), "속도 폭발, step=" + step + " speed=" + s);
 
                 float d = Vector3.Distance(pos, anchor);
                 Assert.That(d, Is.LessThanOrEqualTo(ropeLen + 0.01f), "줄이 늘어났다, step=" + step);
@@ -215,14 +296,14 @@ namespace SpiderVer2.Tests
 
             for (int step = 0; step < 1200; step++)   // 10초
             {
-                vel.y -= 28f * dt;
-                vel = WebPhysics.Pump(pos, vel, anchor, 58f, dt);
+                vel.y -= 72f * dt;
+                vel = WebPhysics.Pump(vel, 58f, dt);
                 pos += vel * dt;
                 vel = WebPhysics.SolveRope(pos, vel, anchor, ropeLen, Convert);
                 pos = WebPhysics.CorrectPosition(pos, anchor, ropeLen, 1f);
 
                 // PlayerMotor가 매 스텝 마지막에 하는 일. 이게 상한을 책임진다.
-                vel = SpiderVer2.Core.MotionMath.ClampSpeed(vel, 82f, 112f, 0.9f, dt);
+                vel = SpiderVer2.Core.MotionMath.ClampSpeed(vel, 82f, 112f, dt);
 
                 Assert.IsTrue(WebPhysics.IsFinite(vel), "step=" + step);
                 Assert.IsTrue(WebPhysics.IsFinite(pos), "step=" + step);
@@ -364,16 +445,17 @@ namespace SpiderVer2.Tests
 
             for (int step = 0; step < 1200; step++)
             {
-                vel.y -= 28f * dt;
+                vel.y -= 72f * dt;
 
                 float oldLen = len;
-                len = WebPhysics.Reel(len, 34f, dt, 12f);
-                vel = WebPhysics.ReelBoost(pos, vel, anchor, oldLen, len, 1.02f);
+                len = WebPhysics.Reel(len, 26f, dt, 12f);
+                vel = WebPhysics.ReelBoost(pos, vel, anchor, oldLen, len, 1.01f);
                 vel = WebPhysics.Pull(pos, vel, anchor, 55f, dt);
 
                 pos += vel * dt;
                 vel = WebPhysics.SolveRope(pos, vel, anchor, len, Convert, Vector3.forward);
-                pos = WebPhysics.CorrectPosition(pos, anchor, len, 0.9f);
+                pos = WebPhysics.CorrectPosition(pos, anchor, len, 1f);
+                vel = SpiderVer2.Core.MotionMath.ClampSpeed(vel, 82f, 112f, dt);
 
                 Assert.IsTrue(WebPhysics.IsFinite(vel), "step=" + step);
                 Assert.IsTrue(WebPhysics.IsFinite(pos), "step=" + step);

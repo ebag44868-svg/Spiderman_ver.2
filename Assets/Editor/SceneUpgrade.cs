@@ -34,12 +34,27 @@ public static class SceneUpgrade
         if (cfg == null) { Debug.LogError("TUNING_FAIL TuningConfig.asset 없음"); return; }
 
         float before = cfg.GRAVITY;
-        cfg.GRAVITY = 28f;      // 22는 진자가 느렸다. v ∝ sqrt(g) 라 속도에 가장 크게 듣는 값이다.
+
+        // Ver.1 game3d.js 실측값. 형님이 "괜찮았다"고 한 그 스윙의 숫자다.
+        cfg.GRAVITY = 72f;              // G
+        cfg.JUMP_SPEED = 42f;           // JUMP_V
+        cfg.MOVE_SPEED = 19f;
+        cfg.SPRINT_MULT = 1.85f;
+        cfg.GRIP_TIME = 0.13f;
+        cfg.ROPE_FOLLOW_RATE = 40f;     // REEL_RATE
+        cfg.REEL_MANUAL = 26f;
+        cfg.PUMP_DEPTH = 0.12f;
+        cfg.REEL_GAIN_MAX = 1.01f;
+        cfg.ROPE_STIFF = 1f;
+        cfg.DRAG_GROUND = 0.06f;
+        cfg.DRAG_AIR = 0.02f;
+        cfg.DRAG_SWING = 0.003f;
 
         EditorUtility.SetDirty(cfg);
         AssetDatabase.SaveAssets();
-        Debug.Log("TUNING_OK GRAVITY " + before + " -> " + cfg.GRAVITY +
-                  " · REEL_RATE=" + cfg.REEL_RATE + " ZIP_PULL=" + cfg.ZIP_PULL);
+        Debug.Log("TUNING_OK Ver.1 값 적용 · GRAVITY " + before + " -> " + cfg.GRAVITY +
+                  " · GRIP_TIME=" + cfg.GRIP_TIME + " PUMP_DEPTH=" + cfg.PUMP_DEPTH +
+                  " ROPE_FOLLOW=" + cfg.ROPE_FOLLOW_RATE);
     }
 
     [MenuItem("Spider/씬/P2 웹 붙이기")]

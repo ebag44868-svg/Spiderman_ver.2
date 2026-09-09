@@ -30,7 +30,7 @@ Hub              C:\Program Files\Unity Hub\Unity Hub.exe
 Ver.2 폴더       C:\Users\SAMSUNG\OneDrive\Desktop\Spiderman_Ver2
 Ver.2 저장소     https://github.com/ebag44868-svg/Spiderman_ver.2   (빈 상태)
 
-Ver.1 폴더       C:\Users\SAMSUNG\OneDrive\Desktop\spider man       (동결 · 읽기 참조용)
+Ver.1 폴더       C:\Users\SAMSUNG\OneDrive\Desktop\spider man       (동결 해제 · 감각 실험장 — §6-A)
 Ver.1 저장소     https://github.com/ebag44868-svg/spider-man-game
 Ver.1 동결 지점  태그 v1.0-final = 커밋 fe4a5cb (main)
 
@@ -283,6 +283,66 @@ Ver.1은 폐기물이 아니라 **연구 프로토타입**이었다. 배운 것:
 
 - Mixamo 클립 14종(`.glb`) → 유니티 Humanoid로 바로 들어간다. 위치: `Ver.1/assets/models/player/anims/`
 - 도시/텍스처 → 버린다. 새 테스트 씬은 큐브로 시작한다.
+
+---
+
+## 6-A. 듀얼 트랙 — Three.js는 실험장, Unity는 본선 ★ 2026-09-09 결정
+
+Ver.1 동결을 **해제한다.** 다만 "다시 Three.js로 간다"가 아니다. 역할을 나눈다.
+
+### 왜 이 결정을 했는가
+
+P2까지 만들고 나서 드러난 사실 두 가지다.
+
+1. **유니티의 이득은 P6부터 나온다.** 유니티를 고른 이유는 애니메이션·리그·IK·카메라 하나뿐인데,
+   이 문서 스스로 "P1~P5는 캡슐로 한다"고 못박아 두었다. 즉 게임의 핵심(자유로운 웹·벽 짚기·
+   웹 등반)을 만드는 구간 내내 유니티의 이득은 0이고 마찰만 전부 받는다.
+2. **§12가 위험 1번으로 적어둔 "검증 루프가 바뀐다"가 실제로 터졌다.** 유니티에서는 Claude가
+   Play를 누를 수 없고, 사용자가 에디터 창을 클릭해 줄 때까지 아무것도 못 한다.
+   Three.js에서는 Claude가 브라우저를 직접 몰고 스크린샷을 찍는다. **2026-09-09 실측으로 재확인했다**
+   (`node serve.js` → 자유 이동 진입까지 Claude 단독 수행).
+
+동시에, 엔진을 갈아타지 않는 이유도 분명하다. Ver.1이 좋았던 건 Three.js 때문이 아니라
+**알고리즘** 때문이다. 그 알고리즘은 어느 엔진에서든 돈다. 그리고 `game3d.js` 7,949줄의
+God File 벽은 Three.js로 돌아간다고 사라지지 않는다.
+
+### 역할
+
+```
+Ver.1 (Three.js)   감각 실험장.
+                   "이 느낌이 맞는가"를 여기서 먼저 답한다.
+                   Claude가 직접 실행·조작·측정·스크린샷 한다.
+                   빠른 실험이 목적이지 제품이 아니다.
+
+Ver.2 (Unity)      본선.
+                   실험장에서 확정된 것만 들어온다.
+                   P6부터 애니메이션·리그·IK·카메라로 이득을 회수한다.
+```
+
+### 규칙 (이걸 안 지키면 두 살림이 둘 다 망한다)
+
+1. **Ver.1에 새 기능을 만들지 않는다.** 감각 실험만 한다.
+   실험 결과물은 "숫자" 또는 "알고리즘"이지 "기능"이 아니다.
+2. **Ver.1을 고칠 때 `game3d.js`에 코드를 더하지 않는다.** 반드시 `src/` 모듈로 뺀다.
+   그걸 못 하는 실험이면 Ver.1에서 하지 않는다. God File 벽을 다시 쌓지 않기 위해서다.
+3. **확정된 숫자는 이 문서 §7에 먼저 적고, 그다음 `TuningConfig`에 넣는다.**
+   두 프로젝트가 같은 숫자를 보게 만드는 단일 출처는 이 문서다.
+4. **Unity에서 "느낌이 이상하다"가 나오면, 먼저 Ver.1에서 같은 상황을 재현해 본다.**
+   Ver.1에서도 이상하면 알고리즘 문제, Ver.1에서 멀쩡하면 이식 문제다.
+   이 구분이 이 트랙의 존재 이유다.
+5. **Ver.1 태그 `v1.0-final`(fe4a5cb)은 건드리지 않는다.** 실험은 별도 브랜치에서 한다.
+6. **분기점:** P6(휴머노이드) 진입 시점에 Ver.1 실험장은 닫는다.
+   그 뒤로는 애니메이션이 얽혀 두 살림을 유지하는 비용이 이득을 넘는다.
+
+### 실행 방법
+
+```bash
+# Ver.1 실험장 띄우기
+cd "C:\Users\SAMSUNG\OneDrive\Desktop\spider man" && node serve.js
+# http://localhost:8173/game3d.html  → "자유 이동"
+# F1 도움말 · F3 앵커 디버그 · F4 앵커 V2/legacy 전환
+# serve.js에 POST /__shot 이 있어 페이지가 스스로 화면을 shots/ 에 저장한다
+```
 
 ---
 
